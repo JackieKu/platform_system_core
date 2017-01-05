@@ -236,6 +236,28 @@ static void writefilestring(char *path, char *s) {
     close(fd);
 }
 
+static bool read_values(char *path, int values[6]) {
+    FILE *f = fopen(path, "r");
+    int ret;
+
+    if (!f) {
+        ALOGE("Error opening %s; errno=%d", path, errno);
+        return false;
+    }
+
+    ret = fscanf(f, "%d,%d,%d,%d,%d,%d",
+        values + 0, values + 1, values + 2,
+        values + 3, values + 4, values + 5);
+    fclose(f);
+
+    if (ret != 6) {
+        ALOGE("Error reading %s, ret=%d", path, ret);
+        return false;
+    }
+
+    return true;
+}
+
 static void cmd_procprio(int pid, int uid, int oomadj) {
     struct proc *procp;
     char path[80];
@@ -286,10 +308,25 @@ static void cmd_target(int ntargets, int *params) {
     if (ntargets > (int)ARRAY_SIZE(lowmem_adj))
         return;
 
+if (1) { // Use hard code values
+    static const int MINFREE[] = {
+        // default (7.1)
+        //18432,23040,27648,32256,55296,80640
+        18432/2,23040/2,27648/2,32256/2,55296/2,80640/2
+    };
+    static const int ADJ[] = {
+        0,100,200,300,900,906 // default (7.0)
+    };
+    if (!read_values("/data/lowmem_minfree", lowmem_minfree))
+        memcpy(lowmem_minfree, MINFREE, sizeof(lowmem_minfree));
+    if (!read_values("/data/lowmem_adj", lowmem_minfree))
+        memcpy(lowmem_adj, ADJ, sizeof(lowmem_adj));
+} else {
     for (i = 0; i < ntargets; i++) {
         lowmem_minfree[i] = ntohl(*params++);
         lowmem_adj[i] = ntohl(*params++);
     }
+}
 
     lowmem_targets_size = ntargets;
 

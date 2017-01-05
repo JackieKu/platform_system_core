@@ -145,7 +145,7 @@ static void drop_privileges(int server_port) {
 
         if (root_seclabel != nullptr) {
             if (selinux_android_setcon(root_seclabel) < 0) {
-                LOG(FATAL) << "Could not set SELinux context";
+                LOG(ERROR) << "Could not set SELinux context";
             }
         }
         std::string error;
@@ -153,7 +153,7 @@ static void drop_privileges(int server_port) {
             android::base::StringPrintf("tcp:%d", server_port);
         if (install_listener(local_name, "*smartsocket*", nullptr, 0,
                              &error)) {
-            LOG(FATAL) << "Could not install *smartsocket* listener: "
+            LOG(ERROR) << "Could not install *smartsocket* listener: "
                        << error;
         }
     }
